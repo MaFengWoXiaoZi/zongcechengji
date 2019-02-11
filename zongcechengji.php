@@ -1,4 +1,41 @@
 <?php
+    function oneExcelFileUploads($excelFile)
+    {
+        // 对上传的文件进行类型和大小检查, 判断其是否为excel文件类型, 是否超过1M大小, 判断文件是否已经存在
+        if (
+            ($_FILES[$excelFile]["type"] == "application/vnd.ms-excel"
+        || $_FILES[$excelFile]["type"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+         && $_FILES[$excelFile]["size"] <= 1024000)
+        {
+            if ($_FILES[$excelFile]["error"] > 0)
+            {
+                echo "错误: " . $_FILES[$excelFile]["error"] . "<br />";
+            }
+            else
+            {
+                if (file_exists(iconv("UTF-8","GBK//IGNORE", "D:\\AppServ\\www\\excel\\" . $_FILES[$excelFile]["name"])))
+                {
+                    echo $_FILES[$excelFile]["name"] . "已经存在";
+                }
+                else
+                {
+                    move_uploaded_file($_FILES[$excelFile]["tmp_name"],
+                    iconv("UTF-8","GBK//IGNORE", "D:\\AppServ\\www\\excel\\" . $_FILES[$excelFile]["name"])); // windows下需要对文件名进行转码, 将utf-8编码转化为gbk, Linux默认为utf-8, 因此不需要
+                    echo "Stored in: " . "excel\\" . $_FILES[$excelFile]["name"];
+                }
+            }
+        }
+        else
+        {
+            echo "<script>alert('您上传的不是excel文件或者excel文件大小超过了1M');</script>";
+        }
+    }
+
+    oneExcelFileUploads("uploadedFile1");
+    oneExcelFileUploads("uploadedFile2");
+  
+?>
+<?php
     include "PHPExcel-1.8/PHPExcel-1.8/Classes/PHPExcel/IOFactory.php";
     include "PHPExcel-1.8/PHPExcel-1.8/Classes/PHPExcel/Writer/Excel2007.php";
     date_default_timezone_set("PRC");
@@ -162,5 +199,10 @@
         writeResultToExcel($allStudentsGradesInfo); // 将成绩信息写入excel中
     }
 
-    main("03.xlsx", "04.xlsx");
+    echo "<br /></br />";
+    
+    // window下文件名要进行编码转换, Linux不需要
+    main(iconv("UTF-8","GBK//IGNORE", "D:\\AppServ\\www\\excel\\" . $_FILES["uploadedFile1"]["name"]),
+    iconv("UTF-8","GBK//IGNORE", "D:\\AppServ\\www\\excel\\" . $_FILES["uploadedFile2"]["name"]));
+
 ?>
